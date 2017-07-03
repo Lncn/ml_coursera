@@ -36,13 +36,16 @@ grad = zeros(size(theta));
 %           grad = grad + YOUR_CODE_HERE (using the temp variable)
 %
 
+h = sigmoid(X * theta);
 
+J = ((-y' * log(h)) - ((1 - y') * log(1 - h)))/m;
+grad = (X' * (h - y))/m;
 
+% Regularization step.  Remember to not regularize the bias unit theta(1)
 
-
-
-
-
+theta(1) = 0;
+J = J + (lambda/(2*m)) * sum(theta.^2);
+grad = grad + (lambda/m) * theta;
 
 
 % =============================================================
