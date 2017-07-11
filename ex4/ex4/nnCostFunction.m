@@ -64,28 +64,63 @@ Theta2_grad = zeros(size(Theta2));
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 % -------------------------------------------------------------
 
 % =========================================================================
 
+% Add bias unit a0(1) to each example (row) in X
+
+X = [ones(m, 1) X];
+
+for i = 1:m
+    % Grab example i (row) of X and convert to input vector x
+    x = X(i,:)';
+    
+    % This is a non-generic 2 layer NN implementation so  just compute
+    % hidden layer a2 and output layer a3 (h(x)) directly
+    z2 = Theta1 * x;
+    a2 = [1; sigmoid(z2)];
+    z3 = Theta2 * a2;
+    h = sigmoid(z3);
+    
+    % Generate answer vector yi from scalar y(i) corresponding to correct
+    % digit index (Ex:  y(i) = 2, so yi = [0; 1; 0; ... ; 0])
+    yi = zeros(num_labels, 1);
+    yi(y(i)) = 1;
+
+    J = J + (-yi' * log(h) - ((1 - yi)' * log(1 - h)));
+    
+    % Backpropogate step...
+    
+    delta3 = (h - yi); % 10 x 1 vector
+    delta2 = ((Theta2)' * delta3) .* [1; sigmoidGradient(z2)];
+    Theta2_grad = Theta2_grad + delta3*a2';
+    Theta1_grad = Theta1_grad + delta2(2:end)*x';
+end
+
+% After iterating across all examples 1 to m, J contains the sum of ALL
+% costs across all examples m.  We want the average, so complete the cost
+% calculation by finally dividing by the number of examples, m.
+J = J/m;
+
+% Same for the ThetaX_grad's...
+Theta1_grad = Theta1_grad/m;
+Theta2_grad = Theta2_grad/m;
+
+% Next add regularization.  This is a non-generic 3 layer NN, so we'll
+% sum over the two theta matricies directly. The cryptic matlab syntax here
+% from inside out says "Take squares from all rows of Theta1, from column 2
+% to end (to subtract bias unit), take column sum, then take row sum" 
+reg =       sum(sum(Theta1(:,2:end).^2));
+reg = reg + sum(sum(Theta2(:,2:end).^2));
+J = J + (lambda/(2*m)) * reg;
+
+Theta1_reg = [zeros(size(Theta1,1),1) Theta1(:,2:end)];
+Theta1_grad = Theta1_grad + (lambda/m)*Theta1_reg;
+Theta2_reg = [zeros(size(Theta2,1),1) Theta2(:,2:end)];
+Theta2_grad = Theta2_grad + (lambda/m)*Theta2_reg;
+
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
-
 
 end
