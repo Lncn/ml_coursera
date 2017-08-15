@@ -23,11 +23,29 @@ sigma = 0.3;
 %        mean(double(predictions ~= yval))
 %
 
+least_error = 0;
+
+% These are sane attempts at choosing a C and sigma.
+tryme = [0.01; 0.03; 0.1; 0.3; 1; 3; 10; 30; 100; 300];
+
+for ii = 1:length(tryme)
+    for jj = 1:length(tryme)
+        
+        C_test = tryme(ii);
+        sigma_test = tryme(jj);
+        
+        model = svmTrain(X, y, C_test, @(x1, x2) gaussianKernel(x1, x2, sigma_test)); 
+        
+        error = mean(double(svmPredict(model, Xval) ~= yval));
 
 
-
-
-
+        if (ii == 1 && jj == 1) || (error < least_error)
+            least_error = error;
+            C = C_test;
+            sigma = sigma_test;
+        end
+    end
+end
 
 % =========================================================================
 
